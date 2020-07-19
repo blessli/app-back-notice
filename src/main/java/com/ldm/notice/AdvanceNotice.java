@@ -14,11 +14,11 @@ public class AdvanceNotice {
     @Autowired
     private AsyncService asyncService;
     /**
-     * 启动时执行一次，之后每隔一个小时秒执行一次
-     * 向相关用户发送短信或者推送
-     * spring task默认是单线程，warning，需要使用线程池异步处理
+     * 启动时执行一次，之后每隔3分钟秒执行一次
+     * 向相关用户发送订阅提醒推送
+     * spring task默认是单线程，需要使用线程池异步处理
      */
-//    @Scheduled(fixedRate = 1000*3600)
+    @Scheduled(fixedRate = 1000*60*3)
     public void send() {
         System.out.println("print method 2");
     }
@@ -34,5 +34,17 @@ public class AdvanceNotice {
     @Scheduled(cron = "0 0 4 * * ?")
     public void crontabAndSyncEs(){
         asyncService.crontabAndSyncEs();
+    }
+
+    /**
+     * 定时刷新access_token，每隔1.5h
+     */
+    @Scheduled(fixedRate = 5400000)
+    public void refreshAccessToken() {
+        try {
+            asyncService.refreshAccessToken();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

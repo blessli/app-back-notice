@@ -2,13 +2,19 @@ package com.ldm.async;
 
 import com.ldm.dao.ActivityDao;
 import com.ldm.dao.SearchActivityDao;
+import com.ldm.entity.AccessToken;
 import com.ldm.entity.EsActivity;
 import com.ldm.entity.SearchDomain;
+import com.ldm.util.CacheHelper;
 import com.ldm.util.DateHandle;
+import com.ldm.util.RedisKeys;
+import com.ldm.util.WxProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.text.ParseException;
 import java.util.Iterator;
@@ -22,26 +28,15 @@ public class AsyncService {
     private ActivityDao activityDao;
 
     @Autowired
+    private WxProxy wxProxy;
+    @Autowired
     private SearchActivityDao searchActivityDao;
 
+    @Autowired
+    private CacheHelper cacheHelper;
+
     @Async("asyncServiceExecutor")
-    public void crontabAndSyncEs(){
-        log.info("定时任务开始执行: 当前时间 {} 同步Es开始!!!",DateHandle.currentDate());
-        List<EsActivity> esActivityList=activityDao.selectEsActivityList();
-        Iterable<SearchDomain> iterable = searchActivityDao.findAll();
-        Iterator it = iterable.iterator();
-        while (it.hasNext()) {
-            searchActivityDao.delete((SearchDomain) it.next());
-        }
-        for (EsActivity activity : esActivityList) {
-            SearchDomain searchDomain = new SearchDomain();
-            searchDomain.setActivityName(activity.getActivityName());
-            searchDomain.setActivityType(activity.getActivityType());
-            searchDomain.setActivityId(activity.getActivityId());
-            searchDomain.setUserNickname(activity.getUserNickname());
-            searchDomain.setLocationName(activity.getLocationName());
-            searchActivityDao.save(searchDomain);
-        }
-        log.info("定时任务结束执行: 当前时间 {} 同步Es完成!!!",DateHandle.currentDate());
+    public void refreshAccessToken() throws Exception {
+        cacheHelper.updateAccessToken(wxProxy.getAccessToken());
     }
 }
