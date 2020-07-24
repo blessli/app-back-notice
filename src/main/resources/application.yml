@@ -42,6 +42,25 @@ spring:
       repositories:
         # 仓库中数据存储
         enabled: true
+  rabbitmq:
+    host: 8.129.63.242
+    port: 5672
+    username: lidongming
+    password: lidongming
+    virtual-host: /
+    publisher-confirms: true
+    publisher-returns: true
+    listener:
+      direct:
+        default-requeue-rejected: true
+      simple:
+        prefetch: 1
+        auto-startup: true
+    template:
+      retry:
+        enabled: true
+        initial-interval: 2s
+      mandatory: true
 mybatis:
   mapper-locations: classpath:mapper/*.xml  #注意：一定要对应mapper映射xml文件的所在路径
   type-aliases-package: com.ldm.entity  # 注意：对应实体类的路径

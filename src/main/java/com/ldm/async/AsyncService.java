@@ -1,40 +1,26 @@
 package com.ldm.async;
 
-import com.ldm.dao.ActivityDao;
-import com.ldm.dao.SearchActivityDao;
-import com.ldm.entity.AccessToken;
-import com.ldm.entity.EsActivity;
-import com.ldm.entity.SearchDomain;
 import com.ldm.util.CacheHelper;
-import com.ldm.util.DateHandle;
-import com.ldm.util.RedisKeys;
 import com.ldm.util.WxProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-
-import java.text.ParseException;
-import java.util.Iterator;
-import java.util.List;
 
 @Slf4j
 @Service
 public class AsyncService {
 
     @Autowired
-    private ActivityDao activityDao;
-
-    @Autowired
     private WxProxy wxProxy;
-    @Autowired
-    private SearchActivityDao searchActivityDao;
 
     @Autowired
     private CacheHelper cacheHelper;
 
+    /**
+     * wx：建议开发者使用中控服务器统一获取和刷新 access_token，其他业务逻辑服务器所使用的 access_token 均来自于该中控服务器，不应该各自去刷新，否则容易造成冲突，导致 access_token 覆盖而影响业务
+     * @throws Exception
+     */
     @Async("asyncServiceExecutor")
     public void refreshAccessToken() throws Exception {
         cacheHelper.updateAccessToken(wxProxy.getAccessToken());
